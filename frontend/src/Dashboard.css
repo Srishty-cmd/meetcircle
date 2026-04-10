@@ -1,0 +1,59 @@
+.dashboard-page {
+  min-height: 100vh;
+  background: #f6f8fc;
+  color: #1f2937;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.dashboard-content {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 26px 20px 36px;
+}
+
+.dashboard-section {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  margin: 0 0 14px;
+  font-size: 1.3rem;
+  color: #0f172a;
+}
+
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.event-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.event-title {
+  margin: 0 0 10px;
+  font-size: 1.02rem;
+  color: #0f172a;
+}
+
+.event-meta {
+  margin: 0 0 7px;
+  font-size: 0.92rem;
+  color: #475569;
+}
+
+.meta-label {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+@media (max-width: 640px) {
+  .dashboard-content {
+    padding: 22px 14px 30px;
+  }
+}
