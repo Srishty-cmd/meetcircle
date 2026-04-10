@@ -138,10 +138,17 @@ code {
   transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
-.event-card button:hover,
-.form-card button:hover {
+.event-card button:hover:not(:disabled),
+.form-card button:hover:not(:disabled) {
   background: #1d4ed8;
   transform: translateY(-1px);
+}
+
+.event-card button:disabled,
+.form-card button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
 .form-card {
@@ -183,11 +190,40 @@ code {
   resize: vertical;
 }
 
-.message-text {
-  margin: 6px 0 0;
-  color: #16a34a;
-  font-size: 0.9rem;
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.05);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border-left-color: #2563eb;
+  animation: spin 1s linear infinite;
+  margin: 30px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.alert-success, .alert-error {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 12px;
   font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.alert-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #34d399;
+}
+
+.alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #f87171;
 }
 
 .link-button {
@@ -226,4 +262,149 @@ code {
   .page-title {
     font-size: 1.6rem;
   }
+}
+
+/* Dark Mode Core */
+body.dark-mode {
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
+.dark-mode .top-navbar {
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+}
+
+.dark-mode .top-navbar h2 {
+  color: #60a5fa;
+}
+
+.dark-mode .nav-actions button {
+  background: #334155;
+  color: #93c5fd;
+}
+
+.dark-mode .nav-actions button:hover {
+  background: #475569;
+}
+
+.dark-mode .home-page {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #334155;
+}
+
+.dark-mode .page-title {
+  color: #f8fafc;
+}
+
+.dark-mode .page-subtitle {
+  color: #94a3b8;
+}
+
+.dark-mode .event-card,
+.dark-mode .form-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .event-card h3 {
+  color: #f8fafc;
+}
+
+.dark-mode .event-card p {
+  color: #cbd5e1;
+}
+
+.dark-mode .event-card span {
+  color: #f1f5f9;
+}
+
+.dark-mode .form-card label {
+  color: #e2e8f0;
+}
+
+.dark-mode .form-card input,
+.dark-mode .form-card textarea {
+  background: #0f172a;
+  border: 1px solid #475569;
+  color: #f8fafc;
+}
+
+.dark-mode .form-card input:focus,
+.dark-mode .form-card textarea:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.16);
+}
+
+.dark-mode .empty-text {
+  background: #1e293b;
+  border: 1px dashed #475569;
+  color: #94a3b8;
+}
+
+.dark-mode .spinner {
+  border-color: rgba(255, 255, 255, 0.1);
+  border-left-color: #60a5fa;
+}
+
+.dark-mode .alert-success {
+  background: #064e3b;
+  color: #34d399;
+  border: 1px solid #059669;
+}
+
+.dark-mode .alert-error {
+  background: #7f1d1d;
+  color: #f87171;
+  border: 1px solid #dc2626;
+}
+
+/* Category Badges */
+.card-badges {
+  margin-bottom: 12px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-music {
+  background-color: #ec4899;
+}
+
+.badge-workshop {
+  background-color: #8b5cf6;
+}
+
+.badge-sports {
+  background-color: #f97316;
+}
+
+.badge-art {
+  background-color: #14b8a6;
+}
+
+.badge-networking {
+  background-color: #3b82f6;
+}
+
+.badge-social {
+  background-color: #f43f5e;
+}
+
+.badge-other {
+  background-color: #64748b;
+}
+
+/* Dark mode tweaks for badges if needed */
+.dark-mode .badge {
+  opacity: 0.9;
 }

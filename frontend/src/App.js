@@ -5,26 +5,44 @@ const API_BASE = "http://localhost:5000";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("home");
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem("theme") === "dark";
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add("dark-mode");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.body.classList.remove("dark-mode");
+      localStorage.setItem("theme", "light");
+    }
+  }, [darkMode]);
 
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [eventsError, setEventsError] = useState("");
 
   const [joinedEventIds, setJoinedEventIds] = useState([]);
+  const [joinMessage, setJoinMessage] = useState(null);
+  const [loadingJoinId, setLoadingJoinId] = useState(null);
 
   const [loginForm, setLoginForm] = useState({
     email: "",
     password: "",
   });
 
-  const [loginMessage, setLoginMessage] = useState("");
+  const [loginMessage, setLoginMessage] = useState(null);
+  const [loadingLogin, setLoadingLogin] = useState(false);
   const [authMode, setAuthMode] = useState("login");
+  
   const [registerForm, setRegisterForm] = useState({
     name: "",
     email: "",
     password: "",
   });
-  const [registerMessage, setRegisterMessage] = useState("");
+  const [registerMessage, setRegisterMessage] = useState(null);
+  const [loadingRegister, setLoadingRegister] = useState(false);
 
   const getErrorMessage = (err, fallbackMessage) => {
     if (err.response?.data?.message) return err.response.data.message;
@@ -40,7 +58,8 @@ function App() {
     description: "",
   });
 
-  const [createMessage, setCreateMessage] = useState("");
+  const [createMessage, setCreateMessage] = useState(null);
+  const [loadingCreate, setLoadingCreate] = useState(false);
 
   // ✅ Fetch events from backend
   useEffect(() => {
@@ -60,15 +79,25 @@ function App() {
 
   // ✅ Join event
   const handleJoin = (id) => {
-    if (!joinedEventIds.includes(id)) {
-      setJoinedEventIds([...joinedEventIds, id]);
-    }
+    setJoinMessage(null);
+    setLoadingJoinId(id);
+    
+    // Simulating an API call for joining since it might not be fully functional
+    setTimeout(() => {
+      if (!joinedEventIds.includes(id)) {
+        setJoinedEventIds([...joinedEventIds, id]);
+        setJoinMessage({ type: "success", text: "Successfully joined the event!" });
+      }
+      setLoadingJoinId(null);
+      setTimeout(() => setJoinMessage(null), 3500);
+    }, 600);
   };
 
   // ✅ LOGIN HANDLER (REAL BACKEND)
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    setLoginMessage("");
+    setLoginMessage(null);
+    setLoadingLogin(true);
 
     try {
       const res = await axios.post(
@@ -77,19 +106,22 @@ function App() {
       );
 
       localStorage.setItem("token", res.data.token);
-      setLoginMessage("Login Successful ✅");
+      setLoginMessage({ type: "success", text: "Login Successful!" });
 
       setTimeout(() => {
         setCurrentPage("dashboard");
+        setLoadingLogin(false);
       }, 800);
     } catch (err) {
-      setLoginMessage(getErrorMessage(err, "Login failed ❌"));
+      setLoginMessage({ type: "error", text: getErrorMessage(err, "Login failed") });
+      setLoadingLogin(false);
     }
   };
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    setRegisterMessage("");
+    setRegisterMessage(null);
+    setLoadingRegister(true);
 
     try {
       await axios.post(
@@ -97,22 +129,28 @@ function App() {
         registerForm
       );
 
-      setRegisterMessage("Registration successful ✅ Please login.");
+      setRegisterMessage({ type: "success", text: "Registration successful! Please login." });
       setRegisterForm({
         name: "",
         email: "",
         password: "",
       });
-      setAuthMode("login");
+      setTimeout(() => {
+        setAuthMode("login");
+        setRegisterMessage(null);
+        setLoadingRegister(false);
+      }, 1500);
     } catch (err) {
-      setRegisterMessage(getErrorMessage(err, "Registration failed ❌"));
+      setRegisterMessage({ type: "error", text: getErrorMessage(err, "Registration failed") });
+      setLoadingRegister(false);
     }
   };
 
   // ✅ CREATE EVENT
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
-    setCreateMessage("");
+    setCreateMessage(null);
+    setLoadingCreate(true);
 
     try {
       const token = localStorage.getItem("token");
@@ -127,7 +165,7 @@ function App() {
         }
       );
 
-      setCreateMessage("Event Created ✅");
+      setCreateMessage({ type: "success", text: "Event Created successfully!" });
 
       setCreateForm({
         title: "",
@@ -143,32 +181,46 @@ function App() {
       );
       setEvents(res.data);
     } catch (err) {
-      setCreateMessage(getErrorMessage(err, "Error creating event ❌"));
+      setCreateMessage({ type: "error", text: getErrorMessage(err, "Error creating event.") });
+    } finally {
+      setLoadingCreate(false);
     }
   };
 
   // ✅ UI COMPONENTS
 
   const renderEvents = () => {
-    if (loadingEvents) return <p className="page-subtitle">Loading events...</p>;
-    if (eventsError) return <p className="empty-text">{eventsError}</p>;
+    if (loadingEvents) return <div className="spinner"></div>;
+    if (eventsError) return <div className="alert-error">{eventsError}</div>;
 
     return (
       <div className="event-grid">
+        {joinMessage && (
+          <div className={`alert-${joinMessage.type}`} style={{ gridColumn: "1 / -1" }}>
+            {joinMessage.text}
+          </div>
+        )}
         {events.map((e) => (
           <div key={e._id || e.id} className="event-card">
             <h3>{e.title}</h3>
+            <div className="card-badges">
+              <span className={`badge badge-${e.category ? e.category.toLowerCase().replace(/\s+/g, '-') : 'other'}`}>
+                {e.category || 'Other'}
+              </span>
+            </div>
             <p>
               <span>Date:</span> {e.date}
             </p>
             <p>
               <span>Location:</span> {e.location}
             </p>
-            <p>
-              <span>Category:</span> {e.category}
-            </p>
-            <button onClick={() => handleJoin(e._id || e.id)}>
-              {joinedEventIds.includes(e._id || e.id)
+            <button 
+              onClick={() => handleJoin(e._id || e.id)}
+              disabled={loadingJoinId === (e._id || e.id) || joinedEventIds.includes(e._id || e.id)}
+            >
+              {loadingJoinId === (e._id || e.id)
+                ? "Joining..."
+                : joinedEventIds.includes(e._id || e.id)
                 ? "Joined"
                 : "Join"}
             </button>
@@ -218,8 +270,14 @@ function App() {
               })
             }
           />
-          <button type="submit">Login</button>
-          <p className="message-text">{loginMessage}</p>
+          <button type="submit" disabled={loadingLogin}>
+            {loadingLogin ? "Logging in..." : "Login"}
+          </button>
+          {loginMessage && (
+            <div className={`alert-${loginMessage.type}`}>
+              {loginMessage.text}
+            </div>
+          )}
           <p className="page-subtitle">
             Don't have an account?{" "}
             <button
@@ -263,8 +321,14 @@ function App() {
               setRegisterForm({ ...registerForm, password: e.target.value })
             }
           />
-          <button type="submit">Register</button>
-          <p className="message-text">{registerMessage}</p>
+          <button type="submit" disabled={loadingRegister}>
+            {loadingRegister ? "Registering..." : "Register"}
+          </button>
+          {registerMessage && (
+            <div className={`alert-${registerMessage.type}`}>
+              {registerMessage.text}
+            </div>
+          )}
           <p className="page-subtitle">
             Already have an account?{" "}
             <button
@@ -338,8 +402,14 @@ function App() {
             })
           }
         />
-        <button type="submit">Create</button>
-        <p className="message-text">{createMessage}</p>
+        <button type="submit" disabled={loadingCreate}>
+          {loadingCreate ? "Creating..." : "Create"}
+        </button>
+        {createMessage && (
+          <div className={`alert-${createMessage.type}`}>
+            {createMessage.text}
+          </div>
+        )}
       </form>
     </section>
   );
@@ -353,7 +423,9 @@ function App() {
       <section className="page-section">
         <h2 className="page-title">Dashboard</h2>
         <p className="page-subtitle">Your joined events.</p>
-        {joined.length === 0 ? (
+        {loadingEvents ? (
+          <div className="spinner"></div>
+        ) : joined.length === 0 ? (
           <p className="empty-text">No joined events</p>
         ) : (
           <div className="event-grid">
@@ -397,6 +469,9 @@ function App() {
       <nav className="top-navbar">
         <h2>CareMate</h2>
         <div className="nav-actions">
+          <button onClick={() => setDarkMode(!darkMode)}>
+            {darkMode ? "☀️ Light" : "🌙 Dark"}
+          </button>
           <button onClick={() => setCurrentPage("home")}>
             Home
           </button>
