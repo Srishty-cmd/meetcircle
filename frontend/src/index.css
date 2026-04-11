@@ -64,6 +64,85 @@ code {
   padding: 26px 20px 34px;
 }
 
+.page-content--landing {
+  max-width: none;
+  padding: 0;
+  margin: 0;
+}
+
+.login-back {
+  margin: 0 0 8px;
+}
+
+.navbar-brand {
+  margin: 0;
+}
+
+.navbar-brand-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.top-navbar h2.navbar-brand {
+  color: #1d4ed8;
+}
+
+.navbar-brand-btn:hover {
+  opacity: 0.88;
+}
+
+.dashboard-next-step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+}
+
+.dashboard-next-step p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #334155;
+  max-width: 520px;
+  line-height: 1.45;
+}
+
+.dashboard-next-step-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  background: #059669;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.dashboard-next-step-btn:hover {
+  background: #047857;
+  transform: translateY(-1px);
+}
+
+.dark-mode .dashboard-next-step {
+  background: linear-gradient(135deg, #1e3a5f 0%, #064e3b 100%);
+  border-color: #334155;
+}
+
+.dark-mode .dashboard-next-step p {
+  color: #e2e8f0;
+}
+
 .page-section {
   width: 100%;
 }
@@ -407,4 +486,175 @@ body.dark-mode {
 /* Dark mode tweaks for badges if needed */
 .dark-mode .badge {
   opacity: 0.9;
+}
+
+/* Dashboard: view / edit event details */
+.dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btn-dashboard {
+  margin-top: 0 !important;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-dashboard-view {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.btn-dashboard-view:hover {
+  background: #dbeafe;
+  transform: translateY(-1px);
+}
+
+.btn-dashboard-edit {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.btn-dashboard-edit:hover {
+  background: #d1fae5;
+  transform: translateY(-1px);
+}
+
+.dashboard-detail {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.dashboard-detail-label {
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.dashboard-detail-desc {
+  margin: 0 0 10px;
+  white-space: pre-wrap;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.dashboard-detail-meta {
+  margin: 0;
+  font-size: 0.94rem;
+  color: #475569;
+}
+
+.dashboard-detail-meta span {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.dashboard-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.dashboard-edit-form label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.dashboard-edit-form input,
+.dashboard-edit-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 11px;
+  font-size: 0.94rem;
+  outline: none;
+  font-family: inherit;
+}
+
+.dashboard-edit-form input:focus,
+.dashboard-edit-form textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+}
+
+.dashboard-edit-form textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.dashboard-form-actions {
+  margin-top: 6px;
+}
+
+.dark-mode .dashboard-detail,
+.dark-mode .dashboard-edit-form {
+  border-top-color: #334155;
+}
+
+.dark-mode .dashboard-detail-label {
+  color: #94a3b8;
+}
+
+.dark-mode .dashboard-detail-desc,
+.dark-mode .dashboard-detail-meta {
+  color: #cbd5e1;
+}
+
+.dark-mode .dashboard-detail-meta span {
+  color: #f1f5f9;
+}
+
+.dark-mode .dashboard-edit-form label {
+  color: #e2e8f0;
+}
+
+.dark-mode .dashboard-edit-form input,
+.dark-mode .dashboard-edit-form textarea {
+  background: #0f172a;
+  border: 1px solid #475569;
+  color: #f8fafc;
+}
+
+.dark-mode .dashboard-edit-form input:focus,
+.dark-mode .dashboard-edit-form textarea:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.16);
+}
+
+.dark-mode .btn-dashboard-view {
+  background: #1e3a5f;
+  color: #93c5fd;
+}
+
+.dark-mode .btn-dashboard-view:hover {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.dark-mode .btn-dashboard-edit {
+  background: #064e3b;
+  color: #6ee7b7;
+}
+
+.dark-mode .btn-dashboard-edit:hover {
+  background: #047857;
+  color: #ffffff;
 }

@@ -1,59 +1,176 @@
-.home-container {
+/* MeetCircle Home — Flexbox layout, centered, responsive */
+
+.home {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  font-family: sans-serif;
+  width: min(1100px, 92vw);
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 2.5rem;
+  box-sizing: border-box;
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  gap: 2rem;
+}
+
+.home-header {
+  width: 100%;
+}
+
+.home-eyebrow {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #2563eb;
+}
+
+body.dark-mode .home-eyebrow {
+  color: #93c5fd;
 }
 
 .home-heading {
-  font-size: 2rem;
-  color: #333;
-  margin-bottom: 20px;
-}
-
-.home-box {
-  border: 1px solid #ccc;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 600px;
-  text-align: center;
-  background-color: #f9f9f9;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.home-text {
-  font-size: 1.2rem;
-  color: #555;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
   margin: 0;
+  color: inherit;
 }
 
+/* Top description box */
+.home-description-box {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 1.75rem 1.5rem;
+  background-color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.home-description-text {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.65;
+  color: inherit;
+  opacity: 0.92;
+}
+
+/* Action buttons */
 .home-buttons {
   display: flex;
-  gap: 16px;
-  margin-top: 30px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem 1.25rem;
+  width: 100%;
 }
 
 .home-btn {
-  padding: 12px 24px;
+  padding: 0.75rem 1.75rem;
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: 10px;
+  font-size: 1.05rem;
   font-weight: 600;
   cursor: pointer;
-  color: #fff;
-  transition: opacity 0.2s;
+  color: #ffffff;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
 }
 
 .home-btn:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  filter: brightness(1.05);
 }
 
-.primary {
-  background-color: #3b82f6;
+.home-btn:active {
+  transform: translateY(0);
 }
 
-.secondary {
-  background-color: #10b981;
+.home-btn-create {
+  background-color: #2563eb;
+}
+
+.home-btn-dashboard {
+  background-color: #059669;
+}
+
+/* Bottom feature cards */
+.home-cards {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  gap: 1.5rem;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.home-card {
+  flex: 1 1 260px;
+  min-width: min(100%, 260px);
+  max-width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 1.5rem 1.25rem;
+  margin: 0;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  text-align: center;
+}
+
+.home-card-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  color: inherit;
+}
+
+.home-card-text {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: inherit;
+  opacity: 0.85;
+}
+
+/* Dark mode (matches App body.dark-mode) */
+body.dark-mode .home-description-box,
+body.dark-mode .home-card {
+  background-color: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* Mobile: stack buttons and cards */
+@media (max-width: 640px) {
+  .home {
+    padding: 1.5rem 1rem 2rem;
+    gap: 1.5rem;
+  }
+
+  .home-buttons {
+    flex-direction: column;
+  }
+
+  .home-btn {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .home-cards {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .home-card {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 420px;
+  }
 }

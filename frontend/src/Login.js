@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import './Login.css';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import "./Login.css";
 
 function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
 
@@ -12,15 +13,15 @@ function Login() {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!email.trim()) {
-      nextErrors.email = 'Email is required.';
+      nextErrors.email = "Email is required.";
     } else if (!emailPattern.test(email.trim())) {
-      nextErrors.email = 'Please enter a valid email address.';
+      nextErrors.email = "Please enter a valid email address.";
     }
 
     if (!password.trim()) {
-      nextErrors.password = 'Password is required.';
+      nextErrors.password = "Password is required.";
     } else if (password.length < 6) {
-      nextErrors.password = 'Password must be at least 6 characters.';
+      nextErrors.password = "Password must be at least 6 characters.";
     }
 
     return nextErrors;
@@ -37,7 +38,7 @@ function Login() {
     <main className="login-page">
       <section className="login-card">
         <h1 className="login-title">Login</h1>
-        <p className="login-subtitle">Welcome back to EventSphere</p>
+        <p className="login-subtitle">Welcome back to MeetCircle</p>
 
         <form className="login-form" onSubmit={handleSubmit} noValidate>
           <label className="input-label" htmlFor="email">
@@ -46,7 +47,7 @@ function Login() {
           <input
             id="email"
             type="email"
-            className={`input-field ${errors.email ? 'input-error' : ''}`}
+            className={`input-field ${errors.email ? "input-error" : ""}`}
             placeholder="Enter your email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -59,7 +60,7 @@ function Login() {
           <input
             id="password"
             type="password"
-            className={`input-field ${errors.password ? 'input-error' : ''}`}
+            className={`input-field ${errors.password ? "input-error" : ""}`}
             placeholder="Enter your password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -76,7 +77,10 @@ function Login() {
         </form>
 
         <p className="register-text">
-          Don't have an account? <a href="#register">Register</a>
+          Don&apos;t have an account?{" "}
+          <Link to="/login?mode=register" className="register-link">
+            Register
+          </Link>
         </p>
       </section>
     </main>

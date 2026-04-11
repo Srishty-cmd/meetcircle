@@ -81,10 +81,36 @@ const getJoinedEvents = async (req, res) => {
   }
 };
 
+const updateEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const event = await Event.findById(id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    if (event.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only the event creator can edit this event' });
+    }
+
+    const { title, description, date, location, category } = req.body;
+    if (title !== undefined) event.title = title;
+    if (description !== undefined) event.description = description;
+    if (date !== undefined) event.date = date;
+    if (location !== undefined) event.location = location;
+    if (category !== undefined) event.category = category;
+
+    await event.save();
+    return res.status(200).json(event);
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to update event' });
+  }
+};
+
 module.exports = {
   getEvents,
   createEvent,
   joinEvent,
   getMyEvents,
   getJoinedEvents,
+  updateEvent,
 };

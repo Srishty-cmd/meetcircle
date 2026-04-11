@@ -101,13 +101,15 @@
   color: #475569;
 }
 
-.register-text a {
+.register-text a,
+.register-link {
   color: #1d4ed8;
   text-decoration: none;
   font-weight: 600;
 }
 
-.register-text a:hover {
+.register-text a:hover,
+.register-link:hover {
   text-decoration: underline;
 }
 

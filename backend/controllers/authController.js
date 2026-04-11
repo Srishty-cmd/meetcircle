@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const generateToken = (userId) =>
-  jwt.sign({ id: userId }, process.env.JWT_SECRET || 'dev-secret', {
+  jwt.sign({ id: String(userId) }, process.env.JWT_SECRET || 'dev-secret', {
     expiresIn: '7d',
   });
 
@@ -74,7 +74,20 @@ const loginUser = async (req, res) => {
   }
 };
 
+const getMe = async (req, res) => {
+  try {
+    return res.status(200).json({
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to get profile' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
+  getMe,
 };
