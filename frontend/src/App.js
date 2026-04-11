@@ -142,6 +142,7 @@ function App() {
     name: "",
     email: "",
     password: "",
+    role: "volunteer",
   });
   const [registerMessage, setRegisterMessage] = useState(null);
   const [loadingRegister, setLoadingRegister] = useState(false);
@@ -254,6 +255,7 @@ function App() {
         name: "",
         email: "",
         password: "",
+        role: "volunteer",
       });
       setTimeout(() => {
         setAuthMode("login");
@@ -458,6 +460,18 @@ function App() {
               setRegisterForm({ ...registerForm, password: e.target.value })
             }
           />
+          <label htmlFor="register-role">Role</label>
+          <select
+            id="register-role"
+            value={registerForm.role}
+            onChange={(e) =>
+              setRegisterForm({ ...registerForm, role: e.target.value })
+            }
+            style={{ width: "100%", padding: "10px", marginBottom: "15px", borderRadius: "10px", border: "1px solid #cbd5e1", outline: "none", fontFamily: "inherit" }}
+          >
+            <option value="volunteer">General Volunteer</option>
+            <option value="core">Core Team</option>
+          </select>
           <button type="submit" disabled={loadingRegister}>
             {loadingRegister ? "Registering..." : "Register"}
           </button>
@@ -484,22 +498,40 @@ function App() {
     </section>
   );
 
-  const renderCreate = () => (
-    <section className="page-section narrow">
-      <h2 className="page-title">Create Event</h2>
-      {!getStoredToken() && (
-        <div className="alert-error" style={{ marginBottom: "14px" }}>
-          You must be logged in to create an event.{" "}
-          <button
-            type="button"
-            className="link-button"
-            onClick={() => navigate("/login")}
-          >
-            Go to Login
-          </button>
-        </div>
-      )}
-      <form className="form-card" onSubmit={handleCreateSubmit}>
+  const renderCreate = () => {
+    if (!getStoredToken()) {
+      return (
+        <section className="page-section narrow">
+          <h2 className="page-title">Create Event</h2>
+          <div className="alert-error" style={{ marginBottom: "14px" }}>
+            You must be logged in to create an event.{" "}
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => navigate("/login")}
+            >
+              Go to Login
+            </button>
+          </div>
+        </section>
+      );
+    }
+    
+    if (currentUser?.role !== "core") {
+      return (
+        <section className="page-section narrow">
+          <h2 className="page-title">Create Event</h2>
+          <div className="alert-error" style={{ marginBottom: "14px" }}>
+            Access Denied. Only Core Team members can create new events.
+          </div>
+        </section>
+      );
+    }
+
+    return (
+      <section className="page-section narrow">
+        <h2 className="page-title">Create Event</h2>
+        <form className="form-card" onSubmit={handleCreateSubmit}>
         <label htmlFor="title">Title</label>
         <input
           id="title"
@@ -672,6 +704,7 @@ function App() {
               const editing =
                 dashboardEdit && String(dashboardEdit._id) === String(id);
               const owner = isOwner(ev);
+              const isCore = currentUser?.role === "core";
 
               return (
                 <div key={id} className="event-card dashboard-event-card">
@@ -701,7 +734,7 @@ function App() {
                     >
                       {expanded ? "Hide details" : "View details"}
                     </button>
-                    {owner && (
+                    {owner && isCore && (
                       <button
                         type="button"
                         className="btn-dashboard btn-dashboard-edit"

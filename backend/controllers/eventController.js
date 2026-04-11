@@ -11,6 +11,9 @@ const getEvents = async (req, res) => {
 
 const createEvent = async (req, res) => {
   try {
+    if (req.user.role !== 'core') {
+      return res.status(403).json({ message: 'Only Core Team members can create events' });
+    }
     const { title, description, date, location, category } = req.body;
 
     if (!title || !description || !date || !location || !category) {
@@ -83,6 +86,9 @@ const getJoinedEvents = async (req, res) => {
 
 const updateEvent = async (req, res) => {
   try {
+    if (req.user.role !== 'core') {
+      return res.status(403).json({ message: 'Only Core Team members can edit events' });
+    }
     const { id } = req.params;
     const event = await Event.findById(id);
     if (!event) {
