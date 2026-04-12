@@ -11,7 +11,45 @@ function CreateEvent() {
     category: '',
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
 
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          // Attempt reverse geocoding to get a real address
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          if (!response.ok) throw new Error('Network response was not ok');
+          const data = await response.json();
+          const address = data.display_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+          setFormData((prev) => ({
+            ...prev,
+            location: address,
+          }));
+        } catch (error) {
+          console.error("Error fetching location string:", error);
+          setFormData((prev) => ({
+            ...prev,
+            location: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+          }));
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        alert('Unable to retrieve your location. Please check your permissions.');
+        setIsLocating(false);
+      }
+    );
+  };
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((prev) => ({
@@ -96,16 +134,34 @@ function CreateEvent() {
           <label className="field-label" htmlFor="location">
             Location
           </label>
-          <input
-            id="location"
-            name="location"
-            type="text"
-            className="field-input"
-            placeholder="Enter event location"
-            value={formData.location}
-            onChange={handleChange}
-            required
-          />
+          <div className="location-input-container">
+            <input
+              id="location"
+              name="location"
+              type="text"
+              className="field-input"
+              placeholder="Enter event location"
+              value={formData.location}
+              onChange={handleChange}
+              required
+            />
+            <button
+              type="button"
+              className="location-btn"
+              onClick={handleGetLocation}
+              disabled={isLocating}
+              title="Use GPS Location"
+            >
+              {isLocating ? (
+                <span className="spinner"></span>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                </svg>
+              )}
+            </button>
+          </div>
+
 
           <label className="field-label" htmlFor="category">
             Category

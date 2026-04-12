@@ -1,176 +1,169 @@
-/* MeetCircle Home — Flexbox layout, centered, responsive */
-
+/* Home Page Specific Overrides */
 .home {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: min(1100px, 92vw);
-  max-width: 100%;
+  width: 100%;
   margin: 0 auto;
-  padding: 2rem 1.25rem 2.5rem;
+  padding: 0;
   box-sizing: border-box;
   text-align: center;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  gap: 2rem;
+  gap: 32px;
 }
 
 .home-header {
   width: 100%;
+  margin-bottom: 16px;
 }
 
 .home-eyebrow {
-  margin: 0 0 8px;
-  font-size: 0.8rem;
+  margin: 0 0 16px;
+  font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #2563eb;
+  color: #3b82f6;
 }
 
 body.dark-mode .home-eyebrow {
-  color: #93c5fd;
+  color: #60a5fa;
 }
 
 .home-heading {
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
-  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
   margin: 0;
-  color: inherit;
+  color: #0f172a;
+  letter-spacing: -0.02em;
 }
 
-/* Top description box */
-.home-description-box {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  padding: 1.75rem 1.5rem;
-  background-color: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+body.dark-mode .home-heading {
+  color: #f8fafc;
 }
 
+/* Inherits .glass-card via class addition in component */
 .home-description-text {
   margin: 0;
-  font-size: 1.1rem;
-  line-height: 1.65;
-  color: inherit;
-  opacity: 0.92;
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: #475569;
 }
 
-/* Action buttons */
+body.dark-mode .home-description-text {
+  color: #94a3b8;
+}
+
 .home-buttons {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
   justify-content: center;
-  align-items: center;
-  gap: 1rem 1.25rem;
+  flex-wrap: wrap;
+  gap: 16px;
   width: 100%;
+  margin-top: 16px;
 }
 
 .home-btn {
-  padding: 0.75rem 1.75rem;
+  padding: 14px 28px;
   border: none;
-  border-radius: 10px;
-  font-size: 1.05rem;
+  border-radius: 100px;
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  color: #ffffff;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    filter 0.2s ease;
-}
-
-.home-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
-  filter: brightness(1.05);
-}
-
-.home-btn:active {
-  transform: translateY(0);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .home-btn-create {
-  background-color: #2563eb;
+  background: #0f172a;
+  color: #ffffff;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
+}
+
+.home-btn-create:hover {
+  transform: translateY(-2px);
+  background: #1e293b;
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.3);
+}
+
+body.dark-mode .home-btn-create {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 10px 25px rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .home-btn-create:hover {
+  background: #f8fafc;
+  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.2);
 }
 
 .home-btn-dashboard {
-  background-color: #059669;
+  background: transparent;
+  color: #475569;
+  border: 2px solid #cbd5e1;
 }
 
-/* Bottom feature cards */
+.home-btn-dashboard:hover {
+  background: rgba(241, 245, 249, 0.8);
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+body.dark-mode .home-btn-dashboard {
+  color: #cbd5e1;
+  border-color: #334155;
+}
+
+body.dark-mode .home-btn-dashboard:hover {
+  background: rgba(30, 41, 59, 0.8);
+  color: #f8fafc;
+  border-color: #475569;
+}
+
 .home-cards {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
   align-items: stretch;
-  gap: 1.5rem;
+  gap: 24px;
   width: 100%;
-  margin-top: 0.25rem;
-}
-
-.home-card {
-  flex: 1 1 260px;
-  min-width: min(100%, 260px);
-  max-width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  padding: 1.5rem 1.25rem;
-  margin: 0;
-  background-color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  text-align: center;
 }
 
 .home-card-title {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin: 0 0 0.75rem;
-  color: inherit;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: #0f172a;
+}
+
+body.dark-mode .home-card-title {
+  color: #f8fafc;
 }
 
 .home-card-text {
   margin: 0;
-  font-size: 1.02rem;
-  line-height: 1.55;
-  color: inherit;
-  opacity: 0.85;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #475569;
 }
 
-/* Dark mode (matches App body.dark-mode) */
-body.dark-mode .home-description-box,
-body.dark-mode .home-card {
-  background-color: #1e293b;
-  border-color: #334155;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+body.dark-mode .home-card-text {
+  color: #94a3b8;
 }
 
-/* Mobile: stack buttons and cards */
 @media (max-width: 640px) {
-  .home {
-    padding: 1.5rem 1rem 2rem;
-    gap: 1.5rem;
-  }
-
   .home-buttons {
     flex-direction: column;
   }
-
   .home-btn {
     width: 100%;
-    max-width: 320px;
   }
-
   .home-cards {
     flex-direction: column;
-    align-items: center;
   }
-
   .home-card {
-    flex: 1 1 auto;
     width: 100%;
-    max-width: 420px;
   }
 }

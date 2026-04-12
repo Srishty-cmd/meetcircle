@@ -6,6 +6,7 @@ const {
   getMyEvents,
   joinEvent,
   updateEvent,
+  deleteEvent,
 } = require('../controllers/eventController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -17,5 +18,6 @@ router.get('/joined-events', protect, getJoinedEvents);
 router.post('/create', protect, createEvent);
 router.post('/join/:eventId', protect, joinEvent);
 router.put('/:id', protect, updateEvent);
+router.delete('/:id', protect, deleteEvent);
 
 module.exports = router;

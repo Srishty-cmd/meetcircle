@@ -94,9 +94,6 @@ const updateEvent = async (req, res) => {
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
-    if (event.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Only the event creator can edit this event' });
-    }
 
     const { title, description, date, location, category } = req.body;
     if (title !== undefined) event.title = title;
@@ -112,6 +109,24 @@ const updateEvent = async (req, res) => {
   }
 };
 
+const deleteEvent = async (req, res) => {
+  try {
+    if (req.user.role !== 'core') {
+      return res.status(403).json({ message: 'Only Core Team members can delete events' });
+    }
+    const { id } = req.params;
+    const event = await Event.findById(id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    await Event.findByIdAndDelete(id);
+    return res.status(200).json({ message: 'Event deleted successfully' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to delete event' });
+  }
+};
+
 module.exports = {
   getEvents,
   createEvent,
@@ -119,4 +134,5 @@ module.exports = {
   getMyEvents,
   getJoinedEvents,
   updateEvent,
+  deleteEvent,
 };

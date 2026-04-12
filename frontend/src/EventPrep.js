@@ -14,6 +14,7 @@ function EventPrep({ apiBase, getToken, getErrorMessage, onNavigateLogin }) {
   const [chatInput, setChatInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState(null);
   const [demoMode, setDemoMode] = useState(false);
   const [savedPreps, setSavedPreps] = useState([]);
@@ -64,11 +65,10 @@ function EventPrep({ apiBase, getToken, getErrorMessage, onNavigateLogin }) {
     loadMyEvents();
   }, [loadSaved, loadMyEvents]);
 
-  const lastAssistantBlueprint = () => {
-    for (let i = thread.length - 1; i >= 0; i--) {
-      if (thread[i].role === "assistant") return thread[i].content;
-    }
-    return "";
+  const getFullConversation = () => {
+    return thread
+      .map((m) => `**${m.role === "user" ? "You" : "Assistant"}**:\n${m.content}`)
+      .join("\n\n---\n\n");
   };
 
   const handleGenerate = async () => {
@@ -153,25 +153,28 @@ function EventPrep({ apiBase, getToken, getErrorMessage, onNavigateLogin }) {
       onNavigateLogin();
       return;
     }
-    const blueprint = lastAssistantBlueprint();
-    if (!eventName.trim() || !blueprint) {
+    const fullConversation = getFullConversation();
+    if (!eventName.trim() || thread.length === 0) {
       setError("Generate a blueprint before saving.");
       return;
     }
     setSaving(true);
     setError(null);
+    setSaveSuccess(false);
     try {
       await axios.post(
         `${apiBase}/api/event-prep/save`,
         {
           title: eventName.trim(),
           details: eventDetails,
-          blueprint,
+          blueprint: fullConversation,
           linkedEventId: linkedEventId || undefined,
         },
         { headers: authHeaders() }
       );
       await loadSaved();
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
       setError(getErrorMessage(err, "Could not save prep."));
     } finally {
@@ -230,6 +233,12 @@ function EventPrep({ apiBase, getToken, getErrorMessage, onNavigateLogin }) {
         </div>
       )}
 
+      {saveSuccess && (
+        <div className="alert-success event-prep-banner" role="alert">
+          Event prep saved successfully! Scroll down to see your saved library.
+        </div>
+      )}
+
       <div className="event-prep-layout">
         <div className="event-prep-panel">
           <h3 className="event-prep-panel-title">Event context</h3>
@@ -281,7 +290,7 @@ function EventPrep({ apiBase, getToken, getErrorMessage, onNavigateLogin }) {
             type="button"
             className="event-prep-secondary"
             onClick={handleSavePrep}
-            disabled={!tokenPresent || saving || !lastAssistantBlueprint()}
+            disabled={!tokenPresent || saving || thread.length === 0}
           >
             {saving ? "Saving…" : "Save to Event Prep library"}
           </button>

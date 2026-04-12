@@ -4,6 +4,7 @@ import axios from "axios";
 import Home from "./Home";
 import Landing from "./Landing";
 import EventPrep from "./EventPrep";
+import Groups from "./Groups";
 
 const PATH_TO_PAGE = {
   "/": "landing",
@@ -12,6 +13,7 @@ const PATH_TO_PAGE = {
   "/create": "create",
   "/dashboard": "dashboard",
   "/event-prep": "eventPrep",
+  "/chatbox": "chatbox",
 };
 
 /**
@@ -597,6 +599,7 @@ function App() {
       </form>
     </section>
   );
+  };
 
   const renderDashboard = () => {
     const currentUserId = currentUser?.id;
@@ -658,6 +661,30 @@ function App() {
         });
       } finally {
         setDashboardSaving(false);
+      }
+    };
+
+    const handleDashboardDelete = async (id) => {
+      if (!window.confirm("Are you sure you want to delete this event? This action cannot be undone.")) return;
+      const auth = getStoredToken();
+      if (!auth) {
+        setDashboardMessage({ type: "error", text: "Log in to perform actions." });
+        return;
+      }
+      try {
+        await axios.delete(`${API_BASE}/api/events/${id}`, {
+          headers: { Authorization: `Bearer ${auth}` },
+        });
+        const res = await axios.get(`${API_BASE}/api/events`);
+        setEvents(res.data);
+        setDashboardMessage({ type: "success", text: "Event deleted successfully." });
+        setDashboardExpandedId(null);
+        setDashboardEdit(null);
+      } catch (err) {
+        setDashboardMessage({
+          type: "error",
+          text: getErrorMessage(err, "Could not delete event."),
+        });
       }
     };
 
@@ -726,15 +753,15 @@ function App() {
                   <p>
                     <span>Location:</span> {ev.location}
                   </p>
-                  <div className="dashboard-actions">
-                    <button
-                      type="button"
-                      className="btn-dashboard btn-dashboard-view"
-                      onClick={() => toggleExpand(ev)}
-                    >
-                      {expanded ? "Hide details" : "View details"}
-                    </button>
-                    {owner && isCore && (
+                  {isCore && (
+                    <div className="dashboard-actions">
+                      <button
+                        type="button"
+                        className="btn-dashboard btn-dashboard-view"
+                        onClick={() => toggleExpand(ev)}
+                      >
+                        {expanded ? "Hide details" : "View details"}
+                      </button>
                       <button
                         type="button"
                         className="btn-dashboard btn-dashboard-edit"
@@ -744,8 +771,15 @@ function App() {
                       >
                         {editing ? "Cancel edit" : "Edit"}
                       </button>
-                    )}
-                  </div>
+                      <button
+                        type="button"
+                        className="btn-dashboard btn-dashboard-delete"
+                        onClick={() => handleDashboardDelete(id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
 
                   {expanded && !editing && (
                     <div className="dashboard-detail">
@@ -870,6 +904,16 @@ function App() {
             onNavigateLogin={() => navigate("/login")}
           />
         );
+      case "chatbox":
+        return (
+          <Groups
+            apiBase={API_BASE}
+            getToken={getStoredToken}
+            getErrorMessage={getErrorMessage}
+            currentUser={currentUser}
+            onNavigateLogin={() => navigate("/login")}
+          />
+        );
       default:
         return (
           <Landing
@@ -884,6 +928,11 @@ function App() {
 
   return (
     <div className="app-shell">
+      {/* Global animated background */}
+      <div className="global-orb orb-1"></div>
+      <div className="global-orb orb-2"></div>
+      <div className="global-orb orb-3"></div>
+
       {!isLanding && (
         <nav className="top-navbar">
           <h2 className="navbar-brand">
@@ -910,6 +959,9 @@ function App() {
             </button>
             <button type="button" onClick={() => navigate("/dashboard")}>
               Dashboard
+            </button>
+            <button type="button" onClick={() => navigate("/chatbox")}>
+              Chatbox
             </button>
             <button type="button" onClick={() => navigate("/event-prep")}>
               Event Prep

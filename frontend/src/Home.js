@@ -12,7 +12,7 @@ function Home() {
         <h1 className="home-heading">Home</h1>
       </header>
 
-      <section className="home-description-box" aria-label="About MeetCircle">
+      <section className="home-description-box glass-card" aria-label="About MeetCircle">
         <p className="home-description-text">
           MeetCircle is a smart platform that connects people through events,
           hackathons, and collaborations. Discover opportunities, build teams,
@@ -38,13 +38,13 @@ function Home() {
       </div>
 
       <section className="home-cards" aria-label="Features">
-        <article className="home-card">
+        <article className="home-card glass-card">
           <h2 className="home-card-title">Create Events</h2>
           <p className="home-card-text">
             Easily organize hackathons, meetups, and community events.
           </p>
         </article>
-        <article className="home-card">
+        <article className="home-card glass-card">
           <h2 className="home-card-title">Dashboard</h2>
           <p className="home-card-text">
             Manage events, track participants, and stay updated.
