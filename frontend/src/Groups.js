@@ -12,6 +12,7 @@ function Groups({ apiBase, getToken, getErrorMessage, currentUser, onNavigateLog
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showMeeting, setShowMeeting] = useState(false);
+  const [showMembers, setShowMembers] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDesc, setNewGroupDesc] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -52,6 +53,21 @@ function Groups({ apiBase, getToken, getErrorMessage, currentUser, onNavigateLog
       socketRef.current.on('message', (msg) => {
         setMessages((prev) => [...prev, msg]);
         scrollToBottom();
+      });
+
+      socketRef.current.on('messageDeleted', (messageId) => {
+        setMessages((prev) => prev.filter(m => m._id !== messageId));
+      });
+
+      socketRef.current.on('memberRemoved', (memberId) => {
+        fetchGroups();
+        setActiveGroup(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            members: prev.members.filter(m => (m._id || m) !== memberId)
+          };
+        });
       });
 
       const fetchMessages = async () => {
@@ -102,15 +118,40 @@ function Groups({ apiBase, getToken, getErrorMessage, currentUser, onNavigateLog
     }
   };
 
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm("Delete this message?")) return;
+    try {
+      await axios.delete(`${apiBase}/api/groups/${activeGroup._id}/messages/${messageId}`, { headers: authHeaders() });
+      setMessages((prev) => prev.filter(m => m._id !== messageId));
+      socketRef.current.emit('messageDeleted', { groupId: activeGroup._id, messageId });
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to delete message"));
+    }
+  };
+
+  const handleRemoveMember = async (memberId) => {
+    if (!window.confirm("Remove this participant from the group?")) return;
+    try {
+      const resp = await axios.delete(`${apiBase}/api/groups/${activeGroup._id}/members/${memberId}`, { headers: authHeaders() });
+      setActiveGroup(resp.data.group);
+      fetchGroups();
+      socketRef.current.emit('memberRemoved', { groupId: activeGroup._id, memberId });
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to remove participant"));
+    }
+  };
+
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (!messageInput.trim() || !socketRef.current) return;
     socketRef.current.emit('sendMessage', {
       groupId: activeGroup._id,
-      sender: currentUser._id,
+      sender: currentUser.id || currentUser._id,
       text: messageInput
     });
     setMessageInput('');
+    const ta = document.getElementById('chat-textarea');
+    if (ta) ta.style.height = '48px';
   };
 
   const handleFileUpload = async (e) => {
@@ -136,6 +177,10 @@ function Groups({ apiBase, getToken, getErrorMessage, currentUser, onNavigateLog
     }
   };
 
+  const rawRole = String(currentUser?.role || '').toLowerCase();
+  const isCore = rawRole === 'core';
+  const isParticipant = rawRole === 'participant';
+
   if (!currentUser) {
     return (
       <section className="groups-page">
@@ -158,7 +203,9 @@ function Groups({ apiBase, getToken, getErrorMessage, currentUser, onNavigateLog
     if (showMeeting) {
       return (
         <div className="meeting-container">
-          <button className="leave-meeting-btn" onClick={() => setShowMeeting(false)}>End / Leave Meeting</button>
+          <button className="leave-meeting-btn" onClick={() => setShowMeeting(false)}>
+            {isCore ? "End Meeting" : "Leave Meeting"}
+          </button>
           <JitsiMeeting
             roomName={`MeetCircle-Group-${activeGroup._id}`}
             configOverwrite={{ startWithAudioMuted: true, startWithVideoMuted: true }}
@@ -173,38 +220,110 @@ function Groups({ apiBase, getToken, getErrorMessage, currentUser, onNavigateLog
     return (
       <section className="groups-page chat-layout">
         <div className="chat-header glass-card">
-          <div className="chat-header-info">
+          <div className="chat-header-info" style={{ position: 'relative' }}>
             <button className="back-btn" onClick={() => setActiveGroup(null)}>← Back</button>
             <h2>{activeGroup.name}</h2>
-            <span>{activeGroup.members.length} members</span>
+            <div className="members-dropdown-container">
+              <span 
+                className="members-count-badge" 
+                style={{ cursor: 'pointer', opacity: 0.8, textDecoration: 'underline' }} 
+                onClick={() => setShowMembers(true)}
+              >
+                {activeGroup.members.length} members
+              </span>
+            </div>
           </div>
-          <button className="jitsi-launch-btn" onClick={() => setShowMeeting(true)}>📹 Start Video Meeting</button>
+          <button className="jitsi-launch-btn" onClick={() => setShowMeeting(true)}>
+            {isCore ? '📹 Host Video Meeting' : '📹 Join Video Meeting'}
+          </button>
         </div>
         
         <div className="chat-messages glass-card">
-          {messages.map((m, idx) => (
-            <div key={idx} className={`chat-bubble ${m.sender?._id === currentUser._id || m.sender === currentUser._id ? 'my-msg' : 'their-msg'}`}>
-              <div className="chat-bubble-sender">{m.sender?.name || 'User'}</div>
-              {m.text && <div className="chat-bubble-text">{m.text}</div>}
-              {m.fileUrl && renderFileAttachment(m)}
-            </div>
-          ))}
+          {messages.map((m, idx) => {
+            const currentId = currentUser.id || currentUser._id;
+            const senderId = m.sender?._id || m.sender?.id || m.sender;
+            return (
+              <div key={idx} className={`chat-bubble ${senderId === currentId ? 'my-msg' : 'their-msg'}`}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div className="chat-bubble-sender">{m.sender?.name || 'User'}</div>
+                  {isCore && (
+                    <button 
+                      onClick={() => handleDeleteMessage(m._id)}
+                      style={{ background: 'none', border: 'none', color: senderId === currentId ? 'rgba(255,255,255,0.7)' : '#ef4444', fontSize: '13px', cursor: 'pointer', padding: '0 0 0 8px' }}
+                      title="Delete message"
+                    >
+                      &times;
+                    </button>
+                  )}
+                </div>
+                {m.text && <div className="chat-bubble-text">{m.text}</div>}
+                {m.fileUrl && renderFileAttachment(m)}
+              </div>
+            );
+          })}
           <div ref={messagesEndRef} />
         </div>
 
-        <form className="chat-input-area glass-card" onSubmit={handleSendMessage}>
-          <input type="file" ref={fileInputRef} onChange={handleFileUpload} style={{ display: 'none' }} accept="image/*,video/*,application/pdf" />
-          <button type="button" className="attach-btn" onClick={() => fileInputRef.current.click()} disabled={uploading}>
-            {uploading ? "⏳" : "📎"}
-          </button>
-          <input type="text" value={messageInput} onChange={(e) => setMessageInput(e.target.value)} placeholder="Type your message..." />
-          <button type="submit" className="send-btn" disabled={!messageInput.trim()}>Send</button>
-        </form>
+        {showMembers && (
+          <div className="members-modal-overlay" onClick={() => setShowMembers(false)} style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <div className="members-modal-content glass-card" onClick={e => e.stopPropagation()} style={{
+              width: '90%', maxWidth: '400px', maxHeight: '70vh', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', borderRadius: '16px', padding: '20px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <h3 style={{ margin: 0, color: '#1e293b' }}>Group Members</h3>
+                <button onClick={() => setShowMembers(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#64748b' }}>&times;</button>
+              </div>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, overflowY: 'auto' }}>
+                {activeGroup.members.map(m => {
+                  const currentId = currentUser.id || currentUser._id;
+                  const mId = m._id || m;
+                  return (
+                    <li key={mId} style={{ padding: '12px 10px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontWeight: '600', color: '#334155' }}>{m.name || 'Unknown User'}</span>
+                        <span style={{ fontSize: '11px', color: '#64748b', backgroundColor: '#e2e8f0', padding: '2px 6px', borderRadius: '4px', textTransform: 'capitalize' }}>
+                          {m.role || 'user'}
+                        </span>
+                      </div>
+                      {isCore && currentId !== mId && (
+                         <button 
+                           onClick={() => handleRemoveMember(mId)}
+                           style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold' }}
+                         >
+                           Remove
+                         </button>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          </div>
+        )}
+
+          <form className="chat-input-area glass-card" onSubmit={handleSendMessage}>
+            <input type="file" ref={fileInputRef} onChange={handleFileUpload} style={{ display: 'none' }} accept="image/*,video/*,application/pdf" />
+            <button type="button" className="attach-btn" onClick={() => fileInputRef.current.click()} disabled={uploading}>
+              {uploading ? "⏳" : "📎"}
+            </button>
+            <textarea 
+              id="chat-textarea"
+              value={messageInput} 
+              onChange={(e) => {
+                setMessageInput(e.target.value);
+                e.target.style.height = '48px';
+                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+              }} 
+              placeholder="Type your message..." 
+            />
+            <button type="submit" className="send-btn" disabled={!messageInput.trim()}>Send</button>
+          </form>
       </section>
     );
   }
 
-  const isCore = currentUser?.role === 'core';
 
   return (
     <section className="groups-page">
@@ -226,7 +345,8 @@ function Groups({ apiBase, getToken, getErrorMessage, currentUser, onNavigateLog
 
       <div className="groups-list">
         {loading ? <div className="spinner" /> : groups.length === 0 ? <p className="empty-text">No active groups.</p> : groups.map(g => {
-          const isMember = g.members.includes(currentUser._id);
+          const currentId = currentUser.id || currentUser._id;
+          const isMember = g.members.some(m => (m._id || m) === currentId);
           return (
             <div key={g._id} className="group-card glass-card">
               <h3>{g.name}</h3>

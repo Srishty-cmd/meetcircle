@@ -7,7 +7,7 @@ function buildInitialUserMessage(eventName, eventDetails) {
   return `Event name: ${eventName.trim()}\n\nOrganizer details / context:\n${details || "(none provided)"}\n\nProduce the full event prep package as specified in your system instructions.`;
 }
 
-function EventPrep({ apiBase, getToken, getErrorMessage, onNavigateLogin }) {
+function EventPrep({ apiBase, getToken, getErrorMessage, currentUser, onNavigateLogin }) {
   const [eventName, setEventName] = useState("");
   const [eventDetails, setEventDetails] = useState("");
   const [thread, setThread] = useState([]);
@@ -198,6 +198,8 @@ function EventPrep({ apiBase, getToken, getErrorMessage, onNavigateLogin }) {
   };
 
   const tokenPresent = Boolean(getToken());
+  const isCore = currentUser?.role === 'core';
+  const roleName = currentUser?.role || 'user';
 
   return (
     <section className="event-prep-page">
@@ -239,7 +241,8 @@ function EventPrep({ apiBase, getToken, getErrorMessage, onNavigateLogin }) {
         </div>
       )}
 
-      <div className="event-prep-layout">
+      {isCore ? (
+        <div className="event-prep-layout">
         <div className="event-prep-panel">
           <h3 className="event-prep-panel-title">Event context</h3>
           <label htmlFor="prep-event-name">Event name</label>
@@ -337,10 +340,15 @@ function EventPrep({ apiBase, getToken, getErrorMessage, onNavigateLogin }) {
             </button>
           </div>
         </div>
-      </div>
+        </div>
+      ) : (
+        <div className="alert-error event-prep-banner" style={{ margin: "20px 0" }}>
+          Access Denied. As a {roleName}, you can view the saved event preps below, but only Core Team members can generate new blueprints.
+        </div>
+      )}
 
       <div className="event-prep-saved">
-        <h3 className="event-prep-panel-title">Your saved event preps</h3>
+        <h3 className="event-prep-panel-title">{!isCore ? "Saved event preps" : "Your saved event preps"}</h3>
         {!tokenPresent ? (
           <p className="empty-text">Log in to see saved preps.</p>
         ) : loadingSaved ? (
@@ -367,14 +375,16 @@ function EventPrep({ apiBase, getToken, getErrorMessage, onNavigateLogin }) {
                       {new Date(p.updatedAt).toLocaleString()}
                     </span>
                   </button>
-                  <button
-                    type="button"
-                    className="event-prep-delete"
-                    onClick={() => handleDeletePrep(p._id)}
-                    aria-label="Delete prep"
-                  >
-                    Delete
-                  </button>
+                  {isCore && (
+                    <button
+                      type="button"
+                      className="event-prep-delete"
+                      onClick={() => handleDeletePrep(p._id)}
+                      aria-label="Delete prep"
+                    >
+                      Delete
+                    </button>
+                  )}
                 </div>
                 {p.linkedEvent && (
                   <p className="event-prep-linked">

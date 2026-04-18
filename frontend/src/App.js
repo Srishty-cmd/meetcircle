@@ -22,7 +22,7 @@ const PATH_TO_PAGE = {
  */
 const API_BASE =
   process.env.NODE_ENV === "development"
-    ? process.env.REACT_APP_API_BASE ?? ""
+    ? process.env.REACT_APP_API_BASE ?? "http://localhost:5000"
     : process.env.REACT_APP_API_BASE ?? "http://localhost:5000";
 
 function toDateInputValue(val) {
@@ -139,7 +139,7 @@ function App() {
     if (mode === "register") setAuthMode("register");
     else setAuthMode("login");
   }, [location.pathname, searchParams]);
-  
+
   const [registerForm, setRegisterForm] = useState({
     name: "",
     email: "",
@@ -176,6 +176,9 @@ function App() {
   });
 
   const [dashboardExpandedId, setDashboardExpandedId] = useState(null);
+  const [dashboardShowParticipantsId, setDashboardShowParticipantsId] = useState(null);
+  const [dashboardShowVolunteersId, setDashboardShowVolunteersId] = useState(null);
+  const [dashboardShowCoreId, setDashboardShowCoreId] = useState(null);
   const [dashboardEdit, setDashboardEdit] = useState(null);
   const [dashboardSaving, setDashboardSaving] = useState(false);
   const [dashboardMessage, setDashboardMessage] = useState(null);
@@ -197,20 +200,51 @@ function App() {
   }, []);
 
   // ✅ Join event
-  const handleJoin = (id) => {
+  const handleJoin = async (id) => {
+    const token = getStoredToken();
+    if (!token) {
+      setJoinMessage({ type: "error", text: "You must log in to join an event." });
+      setTimeout(() => setJoinMessage(null), 3500);
+      return;
+    }
+
     setJoinMessage(null);
     setLoadingJoinId(id);
-    
-    // Simulating an API call for joining since it might not be fully functional
-    setTimeout(() => {
-      if (!joinedEventIds.includes(id)) {
-        setJoinedEventIds([...joinedEventIds, id]);
-        setJoinMessage({ type: "success", text: "Successfully joined the event!" });
-      }
+
+    try {
+      await axios.post(`${API_BASE}/api/events/join/${id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setJoinedEventIds((prev) => [...prev, id]);
+      
+      // Refresh events so the dashboard participant lists update instantly
+      const evRes = await axios.get(`${API_BASE}/api/events`);
+      setEvents(evRes.data);
+      
+      setJoinMessage({ type: "success", text: "Successfully joined the event!" });
+    } catch (err) {
+      setJoinMessage({ type: "error", text: getErrorMessage(err, "Failed to join event.") });
+    } finally {
       setLoadingJoinId(null);
       setTimeout(() => setJoinMessage(null), 3500);
-    }, 600);
+    }
   };
+
+  // ✅ Fetch joined events to persist state
+  useEffect(() => {
+    if (!currentUser) {
+      setJoinedEventIds([]);
+      return;
+    }
+    const token = getStoredToken();
+    if (!token) return;
+    axios
+      .get(`${API_BASE}/api/events/joined-events`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((res) => setJoinedEventIds(res.data.map(e => e._id || e.id)))
+      .catch((err) => console.log("Failed to fetch joined events", err));
+  }, [currentUser]);
 
   // ✅ LOGIN HANDLER (REAL BACKEND)
   const handleLoginSubmit = async (e) => {
@@ -348,15 +382,15 @@ function App() {
             <p>
               <span>Location:</span> {e.location}
             </p>
-            <button 
+            <button
               onClick={() => handleJoin(e._id || e.id)}
               disabled={loadingJoinId === (e._id || e.id) || joinedEventIds.includes(e._id || e.id)}
             >
               {loadingJoinId === (e._id || e.id)
                 ? "Joining..."
                 : joinedEventIds.includes(e._id || e.id)
-                ? "Joined"
-                : "Join"}
+                  ? "Joined"
+                  : "Join"}
             </button>
           </div>
         ))}
@@ -473,6 +507,7 @@ function App() {
           >
             <option value="volunteer">General Volunteer</option>
             <option value="core">Core Team</option>
+            <option value="participant">Participant</option>
           </select>
           <button type="submit" disabled={loadingRegister}>
             {loadingRegister ? "Registering..." : "Register"}
@@ -518,7 +553,7 @@ function App() {
         </section>
       );
     }
-    
+
     if (currentUser?.role !== "core") {
       return (
         <section className="page-section narrow">
@@ -534,71 +569,71 @@ function App() {
       <section className="page-section narrow">
         <h2 className="page-title">Create Event</h2>
         <form className="form-card" onSubmit={handleCreateSubmit}>
-        <label htmlFor="title">Title</label>
-        <input
-          id="title"
-          placeholder="Title"
-          value={createForm.title}
-          onChange={(e) =>
-            setCreateForm({ ...createForm, title: e.target.value })
-          }
-        />
-        <label htmlFor="date">Date</label>
-        <input
-          id="date"
-          type="date"
-          value={createForm.date}
-          onChange={(e) =>
-            setCreateForm({ ...createForm, date: e.target.value })
-          }
-        />
-        <label htmlFor="location">Location</label>
-        <input
-          id="location"
-          placeholder="Location"
-          value={createForm.location}
-          onChange={(e) =>
-            setCreateForm({
-              ...createForm,
-              location: e.target.value,
-            })
-          }
-        />
-        <label htmlFor="category">Category</label>
-        <input
-          id="category"
-          placeholder="Category"
-          value={createForm.category}
-          onChange={(e) =>
-            setCreateForm({
-              ...createForm,
-              category: e.target.value,
-            })
-          }
-        />
-        <label htmlFor="description">Description</label>
-        <textarea
-          id="description"
-          placeholder="Description"
-          value={createForm.description}
-          onChange={(e) =>
-            setCreateForm({
-              ...createForm,
-              description: e.target.value,
-            })
-          }
-        />
-        <button type="submit" disabled={loadingCreate}>
-          {loadingCreate ? "Creating..." : "Create"}
-        </button>
-        {createMessage && (
-          <div className={`alert-${createMessage.type}`}>
-            {createMessage.text}
-          </div>
-        )}
-      </form>
-    </section>
-  );
+          <label htmlFor="title">Title</label>
+          <input
+            id="title"
+            placeholder="Title"
+            value={createForm.title}
+            onChange={(e) =>
+              setCreateForm({ ...createForm, title: e.target.value })
+            }
+          />
+          <label htmlFor="date">Date</label>
+          <input
+            id="date"
+            type="date"
+            value={createForm.date}
+            onChange={(e) =>
+              setCreateForm({ ...createForm, date: e.target.value })
+            }
+          />
+          <label htmlFor="location">Location</label>
+          <input
+            id="location"
+            placeholder="Location"
+            value={createForm.location}
+            onChange={(e) =>
+              setCreateForm({
+                ...createForm,
+                location: e.target.value,
+              })
+            }
+          />
+          <label htmlFor="category">Category</label>
+          <input
+            id="category"
+            placeholder="Category"
+            value={createForm.category}
+            onChange={(e) =>
+              setCreateForm({
+                ...createForm,
+                category: e.target.value,
+              })
+            }
+          />
+          <label htmlFor="description">Description</label>
+          <textarea
+            id="description"
+            placeholder="Description"
+            value={createForm.description}
+            onChange={(e) =>
+              setCreateForm({
+                ...createForm,
+                description: e.target.value,
+              })
+            }
+          />
+          <button type="submit" disabled={loadingCreate}>
+            {loadingCreate ? "Creating..." : "Create"}
+          </button>
+          {createMessage && (
+            <div className={`alert-${createMessage.type}`}>
+              {createMessage.text}
+            </div>
+          )}
+        </form>
+      </section>
+    );
   };
 
   const renderDashboard = () => {
@@ -608,8 +643,8 @@ function App() {
       const creatorId = ev.createdBy?._id ?? ev.createdBy;
       return Boolean(
         currentUserId &&
-          creatorId &&
-          String(currentUserId) === String(creatorId)
+        creatorId &&
+        String(currentUserId) === String(creatorId)
       );
     };
 
@@ -618,6 +653,55 @@ function App() {
       setDashboardExpandedId((prev) => (prev === id ? null : id));
       setDashboardEdit(null);
       setDashboardMessage(null);
+      setDashboardShowParticipantsId(null);
+      setDashboardShowVolunteersId(null);
+      setDashboardShowCoreId(null);
+    };
+
+    const toggleParticipants = (ev) => {
+      const id = ev._id || ev.id;
+      setDashboardShowParticipantsId((prev) => (prev === id ? null : id));
+      setDashboardShowVolunteersId(null);
+      setDashboardShowCoreId(null);
+      setDashboardExpandedId(null);
+      setDashboardEdit(null);
+      setDashboardMessage(null);
+    };
+
+    const toggleVolunteers = (ev) => {
+      const id = ev._id || ev.id;
+      setDashboardShowVolunteersId((prev) => (prev === id ? null : id));
+      setDashboardShowParticipantsId(null);
+      setDashboardShowCoreId(null);
+      setDashboardExpandedId(null);
+      setDashboardEdit(null);
+      setDashboardMessage(null);
+    };
+
+    const toggleCore = (ev) => {
+      const id = ev._id || ev.id;
+      setDashboardShowCoreId((prev) => (prev === id ? null : id));
+      setDashboardShowParticipantsId(null);
+      setDashboardShowVolunteersId(null);
+      setDashboardExpandedId(null);
+      setDashboardEdit(null);
+      setDashboardMessage(null);
+    };
+
+    const handleDashboardRemoveParticipant = async (eventId, participantId) => {
+      if (!window.confirm("Remove this participant?")) return;
+      const auth = getStoredToken();
+      if (!auth) return;
+      try {
+        const res = await axios.delete(`${API_BASE}/api/events/${eventId}/participants/${participantId}`, {
+          headers: { Authorization: `Bearer ${auth}` },
+        });
+        
+        setEvents(prev => prev.map(e => (e._id || e.id) === eventId ? res.data : e));
+        setDashboardMessage({ type: "success", text: "Participant removed." });
+      } catch (err) {
+        setDashboardMessage({ type: "error", text: getErrorMessage(err, "Failed to remove participant.") });
+      }
     };
 
     const startEdit = (ev) => {
@@ -728,6 +812,9 @@ function App() {
             {events.map((ev) => {
               const id = ev._id || ev.id;
               const expanded = dashboardExpandedId === id;
+              const showingParticipants = dashboardShowParticipantsId === id;
+              const showingVolunteers = dashboardShowVolunteersId === id;
+              const showingCore = dashboardShowCoreId === id;
               const editing =
                 dashboardEdit && String(dashboardEdit._id) === String(id);
               const owner = isOwner(ev);
@@ -738,11 +825,10 @@ function App() {
                   <h3>{ev.title}</h3>
                   <div className="card-badges">
                     <span
-                      className={`badge badge-${
-                        ev.category
-                          ? ev.category.toLowerCase().replace(/\s+/g, "-")
-                          : "other"
-                      }`}
+                      className={`badge badge-${ev.category
+                        ? ev.category.toLowerCase().replace(/\s+/g, "-")
+                        : "other"
+                        }`}
                     >
                       {ev.category || "Other"}
                     </span>
@@ -764,6 +850,30 @@ function App() {
                       </button>
                       <button
                         type="button"
+                        className="btn-dashboard btn-dashboard-view"
+                        onClick={() => toggleParticipants(ev)}
+                        style={{ backgroundColor: showingParticipants ? '#cbd5e1' : '#3b82f6', color: showingParticipants ? '#1e293b' : 'white' }}
+                      >
+                        {showingParticipants ? "Hide Participants" : "View Participants"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-dashboard btn-dashboard-view"
+                        onClick={() => toggleVolunteers(ev)}
+                        style={{ backgroundColor: showingVolunteers ? '#cbd5e1' : '#10b981', color: showingVolunteers ? '#1e293b' : 'white' }}
+                      >
+                        {showingVolunteers ? "Hide Volunteers" : "View Volunteers"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-dashboard btn-dashboard-view"
+                        onClick={() => toggleCore(ev)}
+                        style={{ backgroundColor: showingCore ? '#cbd5e1' : '#8b5cf6', color: showingCore ? '#1e293b' : 'white' }}
+                      >
+                        {showingCore ? "Hide Core" : "View Core"}
+                      </button>
+                      <button
+                        type="button"
                         className="btn-dashboard btn-dashboard-edit"
                         onClick={() =>
                           editing ? setDashboardEdit(null) : startEdit(ev)
@@ -778,6 +888,100 @@ function App() {
                       >
                         Delete
                       </button>
+                    </div>
+                  )}
+
+                  {!isCore && (
+                    <div className="dashboard-actions">
+                      <button
+                        type="button"
+                        className="btn-dashboard btn-dashboard-view"
+                        onClick={() => toggleExpand(ev)}
+                      >
+                        {expanded ? "Hide details" : "View details"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-dashboard btn-dashboard-view"
+                        onClick={() => toggleParticipants(ev)}
+                        style={{ backgroundColor: showingParticipants ? '#cbd5e1' : '#3b82f6', color: showingParticipants ? '#1e293b' : 'white' }}
+                      >
+                        {showingParticipants ? "Hide Participants" : "View Participants"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-dashboard btn-dashboard-view"
+                        onClick={() => toggleVolunteers(ev)}
+                        style={{ backgroundColor: showingVolunteers ? '#cbd5e1' : '#10b981', color: showingVolunteers ? '#1e293b' : 'white' }}
+                      >
+                        {showingVolunteers ? "Hide Volunteers" : "View Volunteers"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-dashboard btn-dashboard-view"
+                        onClick={() => toggleCore(ev)}
+                        style={{ backgroundColor: showingCore ? '#cbd5e1' : '#8b5cf6', color: showingCore ? '#1e293b' : 'white' }}
+                      >
+                        {showingCore ? "Hide Core" : "View Core"}
+                      </button>
+                    </div>
+                  )}
+
+                  {(showingParticipants || showingVolunteers || showingCore) && !editing && (
+                    <div className="dashboard-detail">
+                      {(() => {
+                        const filteredList = ev.participants ? ev.participants.filter(p => {
+                          // Catch cases where role is exactly missing and normalize casing
+                          const rawRole = p.role ? String(p.role).toLowerCase() : '';
+                          
+                          if (showingCore) return rawRole === 'core';
+                          if (showingVolunteers) return rawRole === 'volunteer';
+                          
+                          // For Participants view, it should strictly be 'participant'.
+                          // But if there's any fallback/undefined role in legacy DB rows, 
+                          // safely bin them as a general participant rather than skipping them entirely.
+                          if (showingParticipants) {
+                            return rawRole === 'participant' || (rawRole !== 'core' && rawRole !== 'volunteer');
+                          }
+                          return false;
+                        }) : [];
+                        
+                        let titleLabel = "Participants";
+                        if (showingVolunteers) titleLabel = "Volunteers";
+                        if (showingCore) titleLabel = "Core Members";
+                        
+                        return (
+                          <>
+                            <p className="dashboard-detail-label" style={{ marginBottom: '10px' }}>{titleLabel} ({filteredList.length})</p>
+                            {filteredList.length === 0 ? (
+                              <p style={{ fontSize: '14px', color: '#64748b' }}>No {titleLabel.toLowerCase()} yet.</p>
+                            ) : (
+                              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                                {filteredList.map(p => {
+                                  const pId = p._id || p;
+                                  const isMe = pId === currentUserId;
+                                  return (
+                                    <li key={pId} style={{ padding: '10px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', borderRadius: '6px', marginBottom: '6px' }}>
+                                      <div>
+                                        <span style={{ fontWeight: '600', color: '#1e293b', display: 'block' }}>{p.name || 'Unknown User'} {isMe && '(You)'}</span>
+                                        <span style={{ fontSize: '12px', color: '#64748b' }}>{p.email || 'No email provided'} &bull; {p.role || 'user'}</span>
+                                      </div>
+                                      {isCore && !isMe && (
+                                        <button
+                                          onClick={() => handleDashboardRemoveParticipant(id, pId)}
+                                          style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}
+                                        >
+                                          Remove
+                                        </button>
+                                      )}
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   )}
 
@@ -901,6 +1105,7 @@ function App() {
             apiBase={API_BASE}
             getToken={getStoredToken}
             getErrorMessage={getErrorMessage}
+            currentUser={currentUser}
             onNavigateLogin={() => navigate("/login")}
           />
         );
@@ -948,11 +1153,11 @@ function App() {
             <button type="button" onClick={() => setDarkMode(!darkMode)}>
               {darkMode ? "☀️ Light" : "🌙 Dark"}
             </button>
-            <button type="button" onClick={() => navigate("/home")}>
-              Home
-            </button>
             <button type="button" onClick={() => navigate("/login")}>
               Login
+            </button>
+            <button type="button" onClick={() => navigate("/home")}>
+              Home
             </button>
             <button type="button" onClick={() => navigate("/create")}>
               Create
@@ -960,11 +1165,11 @@ function App() {
             <button type="button" onClick={() => navigate("/dashboard")}>
               Dashboard
             </button>
-            <button type="button" onClick={() => navigate("/chatbox")}>
-              Chatbox
-            </button>
             <button type="button" onClick={() => navigate("/event-prep")}>
               Event Prep
+            </button>
+            <button type="button" onClick={() => navigate("/chatbox")}>
+              Chatbox
             </button>
           </div>
         </nav>

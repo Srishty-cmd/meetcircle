@@ -26,7 +26,7 @@ const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: role === 'core' ? 'core' : 'volunteer',
+      role: ['core', 'volunteer', 'participant'].includes(role) ? role : 'volunteer',
     });
 
     return res.status(201).json({

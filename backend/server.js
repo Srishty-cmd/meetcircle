@@ -60,6 +60,14 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('messageDeleted', (data) => {
+    io.to(data.groupId).emit('messageDeleted', data.messageId);
+  });
+
+  socket.on('memberRemoved', (data) => {
+    io.to(data.groupId).emit('memberRemoved', data.memberId);
+  });
+
   socket.on('disconnect', () => {
     // disconnected
   });

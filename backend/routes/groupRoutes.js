@@ -8,6 +8,8 @@ const {
   leaveGroup,
   getMessages,
   uploadFileMessage,
+  removeMember,
+  deleteMessage,
 } = require('../controllers/groupController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -39,7 +41,9 @@ router.get('/', protect, getGroups);
 router.post('/create', protect, createGroup);
 router.post('/:id/join', protect, joinGroup);
 router.post('/:id/leave', protect, leaveGroup);
+router.delete('/:id/members/:memberId', protect, removeMember);
 router.get('/:id/messages', protect, getMessages);
 router.post('/:id/messages/upload', protect, upload.single('file'), uploadFileMessage);
+router.delete('/:id/messages/:messageId', protect, deleteMessage);
 
 module.exports = router;

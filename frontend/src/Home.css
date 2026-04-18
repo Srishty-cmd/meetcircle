@@ -4,7 +4,7 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
-  margin: 0 auto;
+  margin: 0 auto 48px auto; /* Added extra bottom margin for spacing */
   padding: 0;
   box-sizing: border-box;
   text-align: center;
