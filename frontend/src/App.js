@@ -216,11 +216,11 @@ function App() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setJoinedEventIds((prev) => [...prev, id]);
-      
+
       // Refresh events so the dashboard participant lists update instantly
       const evRes = await axios.get(`${API_BASE}/api/events`);
       setEvents(evRes.data);
-      
+
       setJoinMessage({ type: "success", text: "Successfully joined the event!" });
     } catch (err) {
       setJoinMessage({ type: "error", text: getErrorMessage(err, "Failed to join event.") });
@@ -696,7 +696,7 @@ function App() {
         const res = await axios.delete(`${API_BASE}/api/events/${eventId}/participants/${participantId}`, {
           headers: { Authorization: `Bearer ${auth}` },
         });
-        
+
         setEvents(prev => prev.map(e => (e._id || e.id) === eventId ? res.data : e));
         setDashboardMessage({ type: "success", text: "Participant removed." });
       } catch (err) {
@@ -933,10 +933,10 @@ function App() {
                         const filteredList = ev.participants ? ev.participants.filter(p => {
                           // Catch cases where role is exactly missing and normalize casing
                           const rawRole = p.role ? String(p.role).toLowerCase() : '';
-                          
+
                           if (showingCore) return rawRole === 'core';
                           if (showingVolunteers) return rawRole === 'volunteer';
-                          
+
                           // For Participants view, it should strictly be 'participant'.
                           // But if there's any fallback/undefined role in legacy DB rows, 
                           // safely bin them as a general participant rather than skipping them entirely.
@@ -945,11 +945,11 @@ function App() {
                           }
                           return false;
                         }) : [];
-                        
+
                         let titleLabel = "Participants";
                         if (showingVolunteers) titleLabel = "Volunteers";
                         if (showingCore) titleLabel = "Core Members";
-                        
+
                         return (
                           <>
                             <p className="dashboard-detail-label" style={{ marginBottom: '10px' }}>{titleLabel} ({filteredList.length})</p>

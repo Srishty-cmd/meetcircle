@@ -223,7 +223,7 @@ function EventPrep({ apiBase, getToken, getErrorMessage, currentUser, onNavigate
 
       {demoMode && tokenPresent && (
         <div className="alert-success event-prep-banner">
-          Demo blueprint (no API key). Add{" "}
+          Demo blueprint (no API key). Add{"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"}
           <code className="event-prep-code">OPENAI_API_KEY</code> to backend{" "}
           <code className="event-prep-code">.env</code> for live AI output.
         </div>
