@@ -199,6 +199,7 @@ function EventPrep({ apiBase, getToken, getErrorMessage, currentUser, onNavigate
 
   const tokenPresent = Boolean(getToken());
   const isCore = currentUser?.role === 'core';
+  const isParticipant = currentUser?.role === 'participant';
   const roleName = currentUser?.role || 'user';
 
   return (
@@ -341,18 +342,23 @@ function EventPrep({ apiBase, getToken, getErrorMessage, currentUser, onNavigate
           </div>
         </div>
         </div>
+      ) : isParticipant ? (
+        <div className="alert-error event-prep-banner" style={{ margin: "20px 0" }}>
+          Access Denied. Participants do not have access to the Event Prep library.
+        </div>
       ) : (
         <div className="alert-error event-prep-banner" style={{ margin: "20px 0" }}>
           Access Denied. As a {roleName}, you can view the saved event preps below, but only Core Team members can generate new blueprints.
         </div>
       )}
 
-      <div className="event-prep-saved">
-        <h3 className="event-prep-panel-title">{!isCore ? "Saved event preps" : "Your saved event preps"}</h3>
-        {!tokenPresent ? (
-          <p className="empty-text">Log in to see saved preps.</p>
-        ) : loadingSaved ? (
-          <div className="spinner" />
+      {!isParticipant && (
+        <div className="event-prep-saved">
+          <h3 className="event-prep-panel-title">{!isCore ? "Saved event preps" : "Your saved event preps"}</h3>
+          {!tokenPresent ? (
+            <p className="empty-text">Log in to see saved preps.</p>
+          ) : loadingSaved ? (
+            <div className="spinner" />
         ) : savedPreps.length === 0 ? (
           <p className="empty-text">No saved preps yet.</p>
         ) : (
@@ -406,6 +412,7 @@ function EventPrep({ apiBase, getToken, getErrorMessage, currentUser, onNavigate
           </ul>
         )}
       </div>
+      )}
     </section>
   );
 }

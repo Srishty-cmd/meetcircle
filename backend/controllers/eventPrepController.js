@@ -336,7 +336,11 @@ const savePrep = async (req, res) => {
 
 const listMine = async (req, res) => {
   try {
-    const filter = req.user.role === 'participant' ? {} : { createdBy: req.user._id };
+    if (req.user.role === 'participant') {
+      return res.status(403).json({ message: 'Access denied: Participants cannot view event preps' });
+    }
+    // Allow core and volunteers to see all saved preps in the shared library
+    const filter = {};
     const list = await EventPrep.find(filter)
       .sort({ updatedAt: -1 })
       .populate('linkedEvent', 'title date location')

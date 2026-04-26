@@ -22,8 +22,8 @@ const PATH_TO_PAGE = {
  */
 const API_BASE =
   process.env.NODE_ENV === "development"
-    ? process.env.REACT_APP_API_BASE ?? "http://localhost:5000"
-    : process.env.REACT_APP_API_BASE ?? "http://localhost:5000";
+    ? process.env.REACT_APP_API_BASE ?? `http://${window.location.hostname}:5000`
+    : process.env.REACT_APP_API_BASE ?? `http://${window.location.hostname}:5000`;
 
 function toDateInputValue(val) {
   if (!val) return "";
@@ -278,6 +278,16 @@ function App() {
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     setRegisterMessage(null);
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(registerForm.password)) {
+      setRegisterMessage({
+        type: "error",
+        text: "Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character."
+      });
+      return;
+    }
+
     setLoadingRegister(true);
 
     try {
@@ -490,12 +500,15 @@ function App() {
           <input
             id="register-password"
             type="password"
-            placeholder="Password"
+            placeholder="Password (e.g., StrongP@ssw0rd)"
             value={registerForm.password}
             onChange={(e) =>
               setRegisterForm({ ...registerForm, password: e.target.value })
             }
           />
+          <small style={{ display: "block", marginBottom: "15px", color: "#64748b", fontSize: "0.85em" }}>
+            Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.
+          </small>
           <label htmlFor="register-role">Role</label>
           <select
             id="register-role"
