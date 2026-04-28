@@ -23,7 +23,7 @@ const PATH_TO_PAGE = {
 const API_BASE =
   process.env.NODE_ENV === "development"
     ? process.env.REACT_APP_API_BASE ?? `http://${window.location.hostname}:5000`
-    : process.env.REACT_APP_API_BASE ?? `http://${window.location.hostname}:5000`;
+    : process.env.REACT_APP_API_BASE ?? "";
 
 function toDateInputValue(val) {
   if (!val) return "";
